@@ -1,0 +1,5 @@
+flask
+python-telegram-bot==13.7
+pytesseract
+Pillow
+requests
