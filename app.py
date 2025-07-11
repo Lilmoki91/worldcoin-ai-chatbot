@@ -7,19 +7,19 @@ from pydub import AudioSegment
 from flask import Flask
 from ocr_utils import extract_text_from_image
 
-# Dapatkan token dari environment
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+# Ambil token dan link dari environment
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
+REFERRAL_LINK = os.getenv("REFERRAL_LINK", "https://worldcoin.org/join/4RH0OTE")
+HATA_WALLET_LINK = os.getenv("HATA_WALLET_LINK", "https://hata.io/signup?ref=HDX8778")
 
-# Flask app untuk UptimeRobot
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 app = Flask(__name__)
 
 @app.route("/")
 def home():
     return "🤖 Worldcoin AI Bot is alive!"
 
-# Fungsi utama AI dari OpenRouter
 def get_ai_reply(user_input):
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -44,7 +44,6 @@ def get_ai_reply(user_input):
     except Exception:
         return "⚠️ Maaf, AI gagal menjawab. Sila cuba sebentar lagi."
 
-# Fungsi TTS balas suara
 def send_text_and_voice(chat_id, text):
     bot.send_message(chat_id, text)
     try:
@@ -56,25 +55,22 @@ def send_text_and_voice(chat_id, text):
     except Exception:
         bot.send_message(chat_id, "⚠️ Gagal hantar suara, hanya hantar teks sahaja.")
 
-# /start command
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.reply_to(message, (
         "👋 Hai! Saya AI Worldcoin Helper.\n\n"
         "📷 Hantar gambar wallet, 🎤 mesej suara, atau 💬 taip soalan.\n"
         "Saya bantu anda claim & cashout Worldcoin ke Hata Wallet 🇲🇾.\n\n"
-        "🌐 Daftar Worldcoin:\n👉 https://worldcoin.org/join/4RH0OTE\n"
-        "💼 Daftar Wallet Hata:\n👉 https://hata.io/signup?ref=HDX8778"
+        f"🌐 Daftar Worldcoin:\n👉 {REFERRAL_LINK}\n"
+        f"💼 Daftar Wallet Hata:\n👉 {HATA_WALLET_LINK}"
     ))
 
-# Teks biasa
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
     user_input = message.text
     ai_reply = get_ai_reply(user_input)
     send_text_and_voice(message.chat.id, ai_reply)
 
-# Mesej suara
 @bot.message_handler(content_types=['voice'])
 def handle_voice(message):
     try:
@@ -101,7 +97,6 @@ def handle_voice(message):
     except Exception:
         bot.send_message(message.chat.id, "⚠️ Gagal proses suara. Sila hantar semula.")
 
-# Mesej gambar
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
     try:
@@ -115,7 +110,6 @@ def handle_photo(message):
     except Exception:
         bot.send_message(message.chat.id, "⚠️ Gagal baca gambar. Sila cuba lagi.")
 
-# Jalankan Flask + Bot serentak
 if __name__ == "__main__":
     import threading
     bot_thread = threading.Thread(target=bot.polling)
