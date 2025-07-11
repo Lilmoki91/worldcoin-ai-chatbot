@@ -4,3 +4,6 @@ python-telegram-bot==13.7
 pytesseract==0.3.10
 Pillow==9.5.0
 requests==2.31.0
+gTTS==2.3.2
+SpeechRecognition==3.10.1
+pydub==0.25.1
