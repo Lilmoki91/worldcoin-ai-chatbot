@@ -1,7 +1,7 @@
-# Guna Python 3.10 (slim = ringan)
+# Base image Python ringan
 FROM python:3.10-slim
 
-# Install system dependencies termasuk tesseract dan ffmpeg untuk suara
+# Install sistem dependencies
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     libtesseract-dev \
@@ -9,20 +9,21 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     build-essential \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Tetapkan direktori kerja
+# Set direktori kerja
 WORKDIR /app
 
-# Salin semua fail ke dalam container
+# Salin semua fail projek ke dalam container
 COPY . .
 
-# Install pip dependencies
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Install dependencies projek
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Expose port Flask (5000)
+# Dedahkan port Flask (untuk Render)
 EXPOSE 5000
 
-# Jalankan app
+# Jalankan aplikasi
 CMD ["python", "app.py"]
