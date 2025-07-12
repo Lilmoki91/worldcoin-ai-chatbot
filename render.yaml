@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: worldcoin-ai-chatbot
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: REFERRAL_LINK
+        value: https://worldcoin.org/join/4RH0OTE
+      - key: HATA_WALLET_LINK
+        value: https://hata.io/signup?ref=HDX8778
+    autoDeploy: true
