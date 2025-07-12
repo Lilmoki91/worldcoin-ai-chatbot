@@ -19,6 +19,7 @@ logger = logging.getLogger("worldcoin-bot")
 # Load env variables
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+COINGECKO_API_URL = "https://api.coingecko.com/api/v3/simple/price"
 REFERRAL_LINK = os.getenv("REFERRAL_LINK", "https://worldcoin.org/join/4RH0OTE")
 HATA_WALLET_LINK = os.getenv("HATA_WALLET_LINK", "https://hata.io/signup?ref=HDX8778")
 CHANNEL_LINK = os.getenv("CHANNEL_LINK", "https://t.me/cucikripto")
@@ -190,7 +191,6 @@ def handle_photo(message):
         extracted = extract_text_from_image(filename)
         os.remove(filename)
 
-        # Translate text to Malay if detected not Malay
         detected_lang = detect(extracted)
         if detected_lang != 'ms':
             extracted = translator.translate(extracted, dest='ms').text
@@ -201,12 +201,25 @@ def handle_photo(message):
         logger.error(f"Photo error: {e}")
         bot.send_message(message.chat.id, "⚠️ Gagal baca gambar.")
 
-# Uptime healthcheck
+@bot.message_handler(func=lambda msg: msg.text and "harga wld" in msg.text.lower())
+def get_price(message):
+    try:
+        params = {
+            "ids": "worldcoin",
+            "vs_currencies": "myr"
+        }
+        res = requests.get(COINGECKO_API_URL, params=params)
+        data = res.json()
+        price = data['worldcoin']['myr']
+        bot.send_message(message.chat.id, f"💰 Harga semasa Worldcoin (WLD): RM {price:.2f}")
+    except Exception as e:
+        logger.error(f"CoinGecko error: {e}")
+        bot.send_message(message.chat.id, "⚠️ Gagal dapatkan harga semasa.")
+
 @app.route("/health")
 def health():
     return "ok"
 
-# Start polling in background thread
 if __name__ == "__main__":
     bot.remove_webhook()
     import threading
